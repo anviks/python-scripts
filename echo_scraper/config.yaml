@@ -1,0 +1,65 @@
+# EchoLocators configuration
+locators:
+  course_name: [ "xpath", "/html/body/div[2]/div[2]/h1" ]
+  lectures: [ "css selector", ".class-row:not(.future)" ]  # Use for normal lecture livestreams
+  #  lectures: [ "class name", "class-row" ]  # Use for Tarkvaratehnika
+  lecture_date: [ "css selector", "div > div > div > span > span.date" ]
+  lecture_time: [ "css selector", "div > div > div > span > span.time" ]
+
+# Attributes related to the Echo360 website
+attributes:
+  lecture_id_attribute: "data-test-lessonid"
+
+# Formats related to the Echo360 website
+formats:
+  lecture_url: "https://echo360.org.uk/lesson/{lecture_id}/classroom"
+  date_format: "%B %d, %Y"  # Example: "January 01, 2021", this is the date format used on the Echo360 website
+  time_format: "%I:%M%p"  # Example: "12:00AM", this is the time format used on the Echo360 website
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)-8s - %(message)s"
+  datefmt: "%Y-%m-%d %H:%M:%S"
+
+# Course conversion table, used to indicate, that several courses' recordings are on one Echo360 course page
+conversion_table:
+  "ICD0024 - Veebirakendused C# baasil":
+    1: "ICD0006 - JavaScript"
+    2: "ICD0024 - Veebirakendused C# baasil"
+    3: "ICD0015 - ASP.NET Veebirakendused"
+
+# Audio and video pair combinations, grouped by output file suffix, ordered by preference (first is the most preferred).
+# q1 is better quality than q0.
+# s0 is the audio, s1 is the screen capture, s2 is the camera capture.
+file_pairs:
+  " %7C Ekraan":
+    - [ "s0q1.m4s", "s1q1.m4s" ]
+    - [ "s0q0.m4s", "s1q1.m4s" ]
+    - [ "s0q1.m4s", "s1q0.m4s" ]
+    - [ "s0q0.m4s", "s1q0.m4s" ]
+  " %7C Kaamera":
+    - [ "s0q1.m4s", "s2q1.m4s" ]
+    - [ "s0q0.m4s", "s2q1.m4s" ]
+    - [ "s0q1.m4s", "s2q0.m4s" ]
+    - [ "s0q0.m4s", "s2q0.m4s" ]
+
+# URLs of the Echo360 course pages
+course_urls:
+  "ICD0013 - Tarkvaratehnika": "https://echo360.org.uk/section/eb2906f7-e1e1-48b0-a64e-dca55657d090/public"
+  "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL": "https://echo360.org.uk/section/5fe4914a-98ba-4c32-9dae-cf014400fff0/public"
+  "ICD0024 - Veebirakendused C# baasil": "https://echo360.org.uk/section/3b6b058c-10d1-4732-a414-3b8901fbffec/public"
+  "ICA0003 - Andmeturve ja krüptoloogia": "https://echo360.org.uk/section/b0fbe5c1-9337-4263-81f8-069413232a21/public"
+
+# Names of the searched files for each course
+searched_files:
+  "ICD0013 - Tarkvaratehnika": [ "s0q0.m4s", "s0q1.m4s", "s1q1.m4s" ]
+  "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
+  "ICD0024 - Veebirakendused C# baasil": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
+  "ICA0003 - Andmeturve ja krüptoloogia": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
+
+# Course name abbreviations
+course_abbreviations:
+  Tarkvaratehnika: "ICD0013 - Tarkvaratehnika"
+  Oracle: "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL"
+  C#: "ICD0024 - Veebirakendused C# baasil"
+  Andmeturve: "ICA0003 - Andmeturve ja krüptoloogia"
