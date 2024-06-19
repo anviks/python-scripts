@@ -1,16 +1,16 @@
 import asyncio
 import logging
-import sys
+import os
 from argparse import ArgumentParser, ArgumentTypeError
 
 import yaml
 from plyer import notification
 from utils_anviks import dict_to_object
 
-from echo_scraper.config_wrapper import EchoConfig
-from echo_scraper.downloader import download_files_from_urls
-from scraper import EchoScraper
-from merger import merge_files_concurrently
+from .config_wrapper import EchoConfig
+from .downloader import download_files_from_urls
+from .scraper import EchoScraper
+from .merger import merge_files_concurrently
 
 
 def slice_type(s) -> slice:
@@ -30,9 +30,8 @@ def slice_type(s) -> slice:
 
 
 def main() -> None:
-    sys.argv.extend(['-s', '40:', '-sub', 'Tarkvaratehnika', '-o', r'C:\Users\Andreas Viks\Downloads', '-n'])
-
-    with open('config.yaml') as f:
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
+    with open(config_path) as f:
         config = dict_to_object(yaml.safe_load(f), EchoConfig)
         
     logging.basicConfig(

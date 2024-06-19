@@ -5,7 +5,7 @@ import os
 import aiofiles
 import aiohttp
 
-from echo_scraper.domain import Echo360Lecture
+from .domain import Echo360Lecture
 
 logger = logging.getLogger(__name__)
 

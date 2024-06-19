@@ -4,8 +4,8 @@ import subprocess
 from functools import partial
 from multiprocessing import Pool
 
-from domain import Echo360Lecture
-from echo_scraper.config_wrapper import EchoConfig
+from .domain import Echo360Lecture
+from .config_wrapper import EchoConfig
 
 logger = logging.getLogger(__name__)
 
