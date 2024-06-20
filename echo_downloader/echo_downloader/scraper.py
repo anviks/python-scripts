@@ -17,7 +17,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .config_wrapper import EchoScraperConfig
+from .config_wrapper import EchoDownloaderConfig
 from .domain import Echo360Lecture, FileInfo
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class EchoScraper:
     def __init__(self,
-                 configuration: EchoScraperConfig,
+                 configuration: EchoDownloaderConfig,
                  course_title: str,
                  lecture_indices: slice,
                  *,

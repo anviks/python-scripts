@@ -4,6 +4,7 @@ import urllib.parse
 from argparse import ArgumentParser, Namespace
 from os.path import join, isdir
 
+import platformdirs
 import yaml
 from googleapiclient.http import HttpRequest
 from utils_anviks import dict_to_object
@@ -14,19 +15,19 @@ from .youtube_constants import Category
 
 
 def get_playlist_id(uploader: YouTubeUploader, course: str) -> str | None:
-    playlist_id = uploader.find_playlist(name=course)
+    playlist_id = uploader.find_playlist_id(name=course)
 
     if playlist_id is None:
         if input(f"Couldn't find the playlist '{course}'. Create it? (y/n) ").lower() != 'y':
             return
-        playlist_id = uploader.create_playlist(name=course, privacy='unlisted')
+        playlist_id = uploader.create_playlist(name=course, visibility='unlisted')
 
     return playlist_id
 
 
-def get_config():
+def get_config(config_dir: str) -> EchoUploaderConfig:
     default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
-    custom_config_path = os.path.expanduser('~/.config/python-scripts/echo-uploader/config.yaml')
+    custom_config_path = os.path.join(config_dir, 'config.yaml')
 
     with open(default_config_path) as f:
         file_contents = f.read()
@@ -64,13 +65,17 @@ def get_logger(config: EchoUploaderConfig) -> logging.Logger:
 
 
 def main() -> None:
-    config = get_config()
+    config_dir = platformdirs.user_config_dir('echo-uploader', 'anviks', roaming=True)
+    client_secrets_path = os.path.join(config_dir, 'client_secrets.json')
+    token_path = os.path.join(config_dir, 'token.json')
+    
+    config = get_config(config_dir)
     logger = get_logger(config)
     args = get_cli_args(config)
 
     full_course_title = config.course_abbreviations[args.course]
 
-    uploader = YouTubeUploader()
+    uploader = YouTubeUploader(client_secrets_path, token_path)
     playlist_id: str = get_playlist_id(uploader, full_course_title)
 
     course_dir = join(args.source, urllib.parse.quote(full_course_title, safe=' #[]'))

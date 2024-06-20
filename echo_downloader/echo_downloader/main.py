@@ -6,8 +6,9 @@ from argparse import ArgumentParser, ArgumentTypeError
 import yaml
 from plyer import notification
 from utils_anviks import dict_to_object
+import platformdirs
 
-from .config_wrapper import EchoScraperConfig
+from .config_wrapper import EchoDownloaderConfig
 from .downloader import download_files_from_urls
 from .scraper import EchoScraper
 from .merger import merge_files_concurrently
@@ -30,8 +31,9 @@ def slice_type(s) -> slice:
 
 
 def main() -> None:
+    config_dir = platformdirs.user_config_dir('echo-downloader', 'anviks', roaming=True)
     default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
-    custom_config_path = os.path.expanduser('~/.config/python-scripts/echo-scraper/config.yaml')
+    custom_config_path = os.path.join(config_dir, 'config.yaml')
     
     with open(default_config_path) as f:
         file_contents = f.read()
@@ -46,7 +48,7 @@ def main() -> None:
         with open(custom_config_path) as f:
             config_dict.update(yaml.safe_load(f))
             
-    config = dict_to_object(config_dict, EchoScraperConfig)
+    config = dict_to_object(config_dict, EchoDownloaderConfig)
     
     logging.basicConfig(
         level=config.logging.level,
@@ -75,7 +77,7 @@ def main() -> None:
 
     if args.notify:
         notification.notify(
-            title='Echo Scraper',
+            title='Echo Downloader',
             message='Lectures downloaded successfully',
             timeout=10
         )

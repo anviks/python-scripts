@@ -11,7 +11,7 @@ by_values = tuple(v for k, v in dict(By.__dict__).items() if not k.startswith('_
 assert get_args(LocatorStrategies.__value__) == by_values
 
 
-class EchoScraperConfig:
+class EchoDownloaderConfig:
     locators: 'Locators'
     attributes: 'Attributes'
     formats: 'Formats'
