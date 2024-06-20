@@ -7,7 +7,7 @@ import yaml
 from plyer import notification
 from utils_anviks import dict_to_object
 
-from .config_wrapper import EchoConfig
+from .config_wrapper import EchoScraperConfig
 from .downloader import download_files_from_urls
 from .scraper import EchoScraper
 from .merger import merge_files_concurrently
@@ -30,10 +30,24 @@ def slice_type(s) -> slice:
 
 
 def main() -> None:
-    config_path = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
-    with open(config_path) as f:
-        config = dict_to_object(yaml.safe_load(f), EchoConfig)
+    default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
+    custom_config_path = os.path.expanduser('~/.config/python-scripts/echo-scraper/config.yaml')
+    
+    with open(default_config_path) as f:
+        file_contents = f.read()
         
+    config_dict = yaml.safe_load(file_contents)
+        
+    if not os.path.exists(custom_config_path):
+        os.makedirs(os.path.dirname(custom_config_path), exist_ok=True)
+        with open(custom_config_path, 'w') as f:
+            f.write(file_contents)
+    else:
+        with open(custom_config_path) as f:
+            config_dict.update(yaml.safe_load(f))
+            
+    config = dict_to_object(config_dict, EchoScraperConfig)
+    
     logging.basicConfig(
         level=config.logging.level,
         format=config.logging.format,
@@ -44,13 +58,13 @@ def main() -> None:
     parser.add_argument('-s', '--slice', type=slice_type,
                         help='Slice object in the format start:stop[:step], will be used to slice the list of lectures',
                         required=True)
-    parser.add_argument('-sub', '--subject', type=str, choices=config.course_abbreviations.keys(),
-                        help='Subject for which to download lectures', required=True)
+    parser.add_argument('-c', '--course', type=str, choices=config.course_abbreviations.keys(),
+                        help='Course for which to download lectures', required=True)
     parser.add_argument('-o', '--output', type=str, default='.', help='Output directory')
     parser.add_argument('-n', '--notify', action='store_true', help='Send a notification after the script finishes')
     args = parser.parse_args()
 
-    full_course_title = config.course_abbreviations[args.subject]
+    full_course_title = config.course_abbreviations[args.course]
 
     with EchoScraper(config, full_course_title, args.slice, headless=True) as scraper:
         scraper.scrape_all_lectures()

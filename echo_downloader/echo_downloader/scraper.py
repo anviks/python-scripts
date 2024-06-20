@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import subprocess
+import sys
 import time
 from collections import defaultdict
 from datetime import datetime as dt
@@ -9,12 +11,13 @@ from typing import Any, Self
 from urllib.parse import urlparse
 
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .config_wrapper import EchoConfig
+from .config_wrapper import EchoScraperConfig
 from .domain import Echo360Lecture, FileInfo
 
 logger = logging.getLogger(__name__)
@@ -22,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class EchoScraper:
     def __init__(self,
-                 configuration: EchoConfig,
+                 configuration: EchoScraperConfig,
                  course_title: str,
                  lecture_indices: slice,
                  *,
@@ -163,6 +166,8 @@ class EchoScraper:
         options = Options()
         if self.headless:
             options.add_argument('--headless')
+
+        options.add_argument('--log-level=3')
         options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
         self.__driver = WebDriver(options=options)

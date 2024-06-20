@@ -5,12 +5,12 @@ from functools import partial
 from multiprocessing import Pool
 
 from .domain import Echo360Lecture
-from .config_wrapper import EchoConfig
+from .config_wrapper import EchoScraperConfig
 
 logger = logging.getLogger(__name__)
 
 
-def merge_files_concurrently(config: EchoConfig, output_dir: str, lectures: list[Echo360Lecture],
+def merge_files_concurrently(config: EchoScraperConfig, output_dir: str, lectures: list[Echo360Lecture],
                              delete_originals: bool = True) -> None:
     file_infos = get_file_infos(config, output_dir, lectures)
 
@@ -55,7 +55,7 @@ def merge_files(*, audio_path: str, video_path: str, output_path: str) -> None:
         logger.exception('Error while merging:', e)
 
 
-def get_file_infos(config: EchoConfig, output_dir: str, lectures: list[Echo360Lecture]) -> list[dict[str, str]]:
+def get_file_infos(config: EchoScraperConfig, output_dir: str, lectures: list[Echo360Lecture]) -> list[dict[str, str]]:
     file_infos = []
 
     for lecture in lectures:

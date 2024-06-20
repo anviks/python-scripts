@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='echo-scraper',
+    name='echo-downloader',
     version='1.0.0',
     packages=find_packages(),
     include_package_data=True,
@@ -9,7 +9,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'echo-scraper = echo_scraper.main:main',
+            'echo-downloader = echo_downloader.main:main',
         ],
     },
     package_data={
