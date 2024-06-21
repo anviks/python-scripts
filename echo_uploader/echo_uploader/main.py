@@ -49,7 +49,7 @@ def get_cli_args(config: EchoUploaderConfig) -> Namespace:
     parser = ArgumentParser(description='Echo360 video uploader')
     parser.add_argument('-c', '--course', type=str, choices=config.course_abbreviations.keys(),
                         help='Course of the videos to upload', required=True)
-    parser.add_argument('-s', '--source', type=str, help='Source directory of the videos', required=True)
+    parser.add_argument('-s', '--source', type=str, help='Source directory of the videos', default='.')
     
     return parser.parse_args()
 
