@@ -39,28 +39,21 @@ PATTERNS: PatternDict = {
 def get_kata_path(difficulty: str, kata_title: str, language: str, file_contents: list[str]):
     difficulty = difficulty.lower()
 
-    if language == 'php':
-        directory = f'src/solutions/{difficulty}'
-        if difficulty.isdigit():
-            directory += 'kyu'
-    elif language in ('python', 'typescript', 'javascript', 'cpp'):
-        directory = f'solutions/{difficulty}'
-        if difficulty.isdigit():
-            directory += 'kyu'
-    elif language in ('java', 'kotlin'):
-        directory = f'src/main/{language}/me/anviks/codewars/solutions/'
-        if difficulty.isdigit():
-            directory += f'_{difficulty}kyu'
-        else:
-            directory += difficulty
-    elif language == 'rust':
-        directory = f'src/solutions/'
-        if difficulty.isdigit():
-            directory += f'_{difficulty}kyu'
-        else:
-            directory += difficulty
-    else:
-        raise NotImplementedError('Not implemented for that language')
+    folder_prefix = '_' if difficulty.isdigit() and language in ('java', 'kotlin', 'rust') else ''
+    folder_suffix = 'kyu' if difficulty.isdigit() else ''
+
+    directory_structures = {
+        'php': 'src/solutions/',
+        'python': 'solutions/',
+        'typescript': 'solutions/',
+        'javascript': 'solutions/',
+        'cpp': 'solutions/',
+        'java': f'src/main/{language}/me/anviks/codewars/solutions/',
+        'kotlin': f'src/main/{language}/me/anviks/codewars/solutions/',
+        'rust': 'src/solutions/',
+    }
+    
+    directory = directory_structures[language] + folder_prefix + difficulty + folder_suffix
 
     words: list[str] = re.findall(r'\w+', kata_title.lower())
     directory += '/' + '_'.join(words)
