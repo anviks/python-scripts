@@ -1,0 +1,12 @@
+<?php
+
+/*
+ * {codewars_url}
+ */
+
+use PHPUnit\Framework\TestCase;
+
+require '{kata_file}.php';
+
+
+{tests}
