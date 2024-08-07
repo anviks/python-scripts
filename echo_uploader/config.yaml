@@ -3,12 +3,3 @@ logging:
   format: "%(asctime)s - %(name)s - %(levelname)-8s - %(message)s"
   datefmt: "%Y-%m-%d %H:%M:%S"
   
-# Course name abbreviations
-course_abbreviations:
-  JS: "ICD0006 - JavaScript"
-  C#: "ICD0024 - Veebirakendused C# baasil"
-  ASP: "ICD0015 - ASP.NET Veebirakendused"
-  Tarkvaratehnika: "ICD0013 - Tarkvaratehnika"
-  Oracle: "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL"
-  Andmeturve: "ICA0003 - Andmeturve ja krüptoloogia"
-  

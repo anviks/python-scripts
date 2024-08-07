@@ -56,10 +56,3 @@ searched_files:
   "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
   "ICD0024 - Veebirakendused C# baasil": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
   "ICA0003 - Andmeturve ja krüptoloogia": [ "s0q1.m4s", "s1q1.m4s", "s2q1.m4s" ]
-
-# Course name abbreviations
-course_abbreviations:
-  Tarkvaratehnika: "ICD0013 - Tarkvaratehnika"
-  Oracle: "ICA0016 - Oracle programmeerimiskeeled SQL ja PL-SQL"
-  C#: "ICD0024 - Veebirakendused C# baasil"
-  Andmeturve: "ICA0003 - Andmeturve ja krüptoloogia"
