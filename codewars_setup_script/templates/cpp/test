@@ -4,4 +4,4 @@
 
 #include "{solution_file_name}.hpp"
 
-{solution}
+{tests}

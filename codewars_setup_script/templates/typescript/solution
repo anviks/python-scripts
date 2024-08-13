@@ -2,4 +2,4 @@
  * {codewars_url}
  */
 
-{content}
+export {solution}

@@ -1,0 +1,6 @@
+"""{codewars_url}"""
+
+from {solution_file_name} import *
+
+
+{tests}

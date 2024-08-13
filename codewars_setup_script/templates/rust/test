@@ -1,0 +1,7 @@
+/*
+ * {codewars_url}
+ */
+
+use super::{solution_file_name}::*;
+
+{tests}

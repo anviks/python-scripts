@@ -2,6 +2,6 @@
  * {codewars_url}
  */
 
-package {package_name};
+#include "{solution_file_name}.h"
 
 {solution}

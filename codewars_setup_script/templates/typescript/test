@@ -1,0 +1,6 @@
+/*
+ * {codewars_url}
+ */
+
+import {{  }} from './{solution_file_name}.ts';
+{tests}

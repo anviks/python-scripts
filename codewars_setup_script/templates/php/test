@@ -6,7 +6,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-require '{kata_file}.php';
+require '{solution_file_name}.php';
 
 
 {tests}

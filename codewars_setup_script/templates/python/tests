@@ -1,6 +1,0 @@
-"""{codewars_url}"""
-
-from {kata_file} import *
-
-
-{tests}
