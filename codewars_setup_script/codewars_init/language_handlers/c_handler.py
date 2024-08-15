@@ -24,4 +24,4 @@ class CHandler(LanguageHandler):
         ]
 
     def get_directory(self) -> str:
-        return 'solutions/'
+        return 'src/solutions/'

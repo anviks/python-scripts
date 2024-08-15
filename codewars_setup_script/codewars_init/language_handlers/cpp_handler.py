@@ -25,7 +25,7 @@ class CppHandler(LanguageHandler):
         ]
 
     def get_directory(self) -> str:
-        return 'solutions/'
+        return 'src/solutions/'
 
     def edit_file_contents(self, files: list[SourceFile]) -> None:
         files[1].contents = igloo_to_catch2(files[1].contents)

@@ -1,0 +1,43 @@
+```javascript
+const add = (a, b) => a + b;
+```
+
+```typescript
+const add = (a: number, b: number) => a + b;
+```
+
+```ruby
+def add(a, b)
+  a + b
+end
+```
+
+```if:javascript,typescript
+Shown _if_ the active language is JavaScript **or** TypeScript.
+```
+
+```if:ruby
+Shown _if_ the active language is Ruby.
+```
+
+```if-not:javascript,typescript
+Hidden _if_ the active language is JavaScript **or** TypeScript.
+```
+
+```if-not:ruby
+Hidden _if_ the active language is Ruby.
+```
+
+~~~if:javascript
+Used tilde to open conditional block.
+```javascript
+// Regular code block
+```
+~~~
+
+````if:javascript
+Used 4 backticks
+```javascript
+// Regular code block
+```
+````
