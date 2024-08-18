@@ -162,4 +162,7 @@ cython_debug/
 .idea/
 
 /d.py
+/g.py
+/o.py
 /codewars_setup_script/spoof_stuff.py
+/z*
