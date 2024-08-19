@@ -2,6 +2,10 @@
  * {codewars_url}
  */
 
-#include "{solution_file_name}.h"
+extern "C" {{
+    #include "{solution_file_name}.h"
+}}
+
+#include "../../../test_macros.hpp"
 
 {tests}

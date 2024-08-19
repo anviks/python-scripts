@@ -47,10 +47,10 @@ def find_function_args(string: str, starting_index: int) -> tuple[list[str], int
 
 
 def parse_conditional_rendering(text, active_language):
-    pattern_remove_ifs = re.compile(fr'(?P<backticks>`{{3,}}|~{{3}})if:(?:(?!{active_language}).)*?\n.+?\n(?P=backticks)\n+', flags=re.DOTALL)
-    pattern_remove_if_nots = re.compile(fr'(?P<backticks>`{{3,}}|~{{3}})if-not:[^\n]*?(?={active_language})[^\n]+?\n.+?\n(?P=backticks)\n+', flags=re.DOTALL)
-    pattern_unwrap_ifs_and_if_nots = re.compile(r'(?P<backticks>`{3,}|~{3})if[^\n]+\n(?P<content>.+?)\n(?P=backticks)', flags=re.DOTALL)
-    pattern_remove_code_blocks = re.compile(fr'(?P<backticks>`{{3,}}|~{{3}})(?!{active_language}|if)[^\n]+\n.+?\n(?P=backticks)\n+', flags=re.DOTALL)
+    pattern_remove_ifs = re.compile(fr'(?P<backticks>`{{3,}}|~{{3,}})if:(?:(?!{active_language}).)*?\n.+?\n(?P=backticks)\n+', flags=re.DOTALL)
+    pattern_remove_if_nots = re.compile(fr'(?P<backticks>`{{3,}}|~{{3,}})if-not:[^\n]*?(?={active_language})[^\n]+?\n.+?\n(?P=backticks)\n+', flags=re.DOTALL)
+    pattern_unwrap_ifs_and_if_nots = re.compile(r'(?P<backticks>`{3,}|~{3,})if[^\n]+\n(?P<content>.+?)\n(?P=backticks)', flags=re.DOTALL)
+    pattern_remove_code_blocks = re.compile(fr'(?P<delimiter>`{{3,}}|~{{3,}})(?!{active_language})[^\n]+\n(?:(?!\n(?P=delimiter)).*?\n)*?(?P=delimiter)\n+')
     
     text = pattern_remove_ifs.sub('', text)
     text = pattern_remove_if_nots.sub('', text)

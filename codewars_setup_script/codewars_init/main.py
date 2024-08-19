@@ -74,6 +74,7 @@ def fetch_kata_details(driver: Chrome, codewars_url: str, language: str) -> tupl
     slug = response['slug'].replace('-', '_')
     difficulty = response['rank']['id']
     description = parse_conditional_rendering(response['description'], language)
+    description = f'# [{kata_title}]({codewars_url})\n\n{description}'
 
     files = [
         SourceFile(contents=driver.execute_script("return arguments[0].CodeMirror.getValue()", container))

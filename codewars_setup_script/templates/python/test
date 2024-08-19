@@ -1,5 +1,7 @@
 """{codewars_url}"""
 
+import pytest
+
 from {solution_file_name} import *
 
 
