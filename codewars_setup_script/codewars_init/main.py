@@ -3,16 +3,13 @@ import os.path
 import re
 import sys
 from typing import Any
+from urllib.parse import unquote
 
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from requests import get
+from requests import Session, get
 
 from .framework_transformers.helpers import parse_conditional_rendering
 from .language_handlers import CHandler, CppHandler, JavaHandler, JavascriptHandler, KotlinHandler, LanguageHandler, \
-    PhpHandler, PythonHandler, RustHandler, TypescriptHandler, SourceFile
+    PhpHandler, PythonHandler, RustHandler, SourceFile, TypescriptHandler
 
 CURRENT_PATH = os.path.dirname(__file__)
 TEMPLATES_DIR = f'{CURRENT_PATH}/../templates'
@@ -40,7 +37,7 @@ class LanguageFactory:
 
 def get_difficulty_directory(difficulty: int | None, handler: LanguageHandler) -> str:
     directory = handler.get_directory()
-    
+
     if difficulty is not None:
         directory += f'{handler.get_numeric_folder_prefix()}{-difficulty}kyu'
     else:
@@ -49,25 +46,10 @@ def get_difficulty_directory(difficulty: int | None, handler: LanguageHandler) -
     return directory
 
 
-def setup_driver(*, headless: bool) -> Chrome:
-    """
-    Set up the Chrome WebDriver with headless options.
-    """
-    options = Options()
-    if headless:
-        options.add_argument('--headless')
-    driver = Chrome(options=options)
-    driver.implicitly_wait(5)
-    return driver
-
-
-def fetch_kata_details(driver: Chrome, codewars_url: str, language: str) -> tuple[str, str, int | None, str, list[SourceFile]]:
+def fetch_kata_details(codewars_url: str, language: str) -> tuple[str, str, int | None, str, list[SourceFile]]:
     """
     Fetch the kata details including title, difficulty, and code snippets.
     """
-    driver.get(f'{codewars_url}/train/{language}')
-    WebDriverWait(driver, 10).until(lambda d: not d.find_element(By.TAG_NAME, 'h4').text.startswith('Loading '))
-
     kata_id = codewars_url.split('/')[-1]
     response = get('https://www.codewars.com/api/v1/code-challenges/' + kata_id).json()
     kata_title = response['name']
@@ -76,10 +58,23 @@ def fetch_kata_details(driver: Chrome, codewars_url: str, language: str) -> tupl
     description = parse_conditional_rendering(response['description'], language)
     description = f'# [{kata_title}]({codewars_url})\n\n{description}'
 
-    files = [
-        SourceFile(contents=driver.execute_script("return arguments[0].CodeMirror.getValue()", container))
-        for container in driver.find_elements(By.CLASS_NAME, 'CodeMirror')
-    ]
+    with Session() as session:
+        session.headers['User-Agent'] = 'Automatic solution setup script'
+
+        resp = session.get(f'https://www.codewars.com/kata/{kata_id}/train/{language}')
+        session_id = re.search(r'"session":"/kata/projects/([0-9a-f]{24})/%7Blanguage%7D/session"', resp.text).group(1)
+        jwt = re.search(r'\\"jwt\\":\\"(.+?)\\"', resp.text).group(1)
+
+        csrf_token = session.cookies.get('CSRF-TOKEN')
+
+        resp = session.post(f'https://www.codewars.com/kata/projects/{session_id}/c/session', headers={
+            'authorization': jwt,
+            'x-csrf-token': unquote(csrf_token),
+        })
+
+        result = resp.json()
+
+    files = [SourceFile(contents=result['setup']), SourceFile(contents=result['exampleFixture'])]
 
     return kata_title, slug, difficulty, description, files
 
@@ -109,7 +104,11 @@ def update_history(history: dict, language: str, previous_language: str):
         save_history(history)
 
 
-def handle_existing_directory(directory: str, files: list[SourceFile], handler: LanguageHandler) -> tuple[str, list[SourceFile]]:
+def handle_existing_directory(
+        directory: str,
+        files: list[SourceFile],
+        handler: LanguageHandler
+) -> tuple[str, list[SourceFile]]:
     """
     Handle the scenario where the kata directory already exists.
     """
@@ -142,9 +141,9 @@ def create_files(
     Create the necessary files for the kata solution and tests.
     """
     os.makedirs(directory, exist_ok=True)
-    
+
     for file in files:
-        with (open(f'{TEMPLATES_DIR}/{language}/{file.template_name}', 'r', encoding='utf-8') as template, 
+        with (open(f'{TEMPLATES_DIR}/{language}/{file.template_name}', 'r', encoding='utf-8') as template,
               open(f'{directory}/{file.name}.{file.extension}', 'w', encoding='utf-8') as kata_file):
             kata_file.write(template.read().format_map(format_vars))
 
@@ -157,8 +156,9 @@ def main():
         codewars_url_input = sys.argv[1]
     else:
         codewars_url_input = input('Enter the url of a codewars kata you\'re about to solve:\n')
-    
-    codewars_url_match = re.search(r'(https://www\.codewars\.com/kata/[\w-]+)(?:(?:/train)?/([a-z]+))?', codewars_url_input)
+
+    codewars_url_match = re.search(r'(https://www\.codewars\.com/kata/[\w-]+)(?:(?:/train)?/([a-z]+))?',
+                                   codewars_url_input)
     if not codewars_url_match:
         raise ValueError('Invalid codewars url')
 
@@ -168,27 +168,23 @@ def main():
     history = load_history()
     previous_language = history['previousLanguage'] or 'python'
     language = language or input(f'Language? [{previous_language}]\n') or previous_language
-    
+
     handler = LanguageFactory.get_handler(language)
 
     update_history(history, language, previous_language)
 
-    driver = setup_driver(headless=True)
-    kata_title, kata_slug, difficulty, description, files = fetch_kata_details(driver, codewars_url, language)
+    kata_title, kata_slug, difficulty, description, files = fetch_kata_details(codewars_url, language)
     kata_directory = get_difficulty_directory(difficulty, handler) + '/' + kata_slug
 
     files = handler.get_files_to_create(kata_slug, files)
     kata_directory, files = handle_existing_directory(kata_directory, files, handler)
 
     if not kata_directory:
-        driver.quit()
         return
 
     handler.edit_file_contents(files)
     format_vars = handler.get_format_args(files, kata_directory, codewars_url)
     create_files(kata_directory, files, description, language, format_vars)
-
-    driver.quit()
 
 
 if __name__ == '__main__':
