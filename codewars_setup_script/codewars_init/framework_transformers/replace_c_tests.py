@@ -17,7 +17,7 @@ def criterion_to_catch2(tests: str):
 
     # Convert cr_assert_not to REQUIRE
     # cr_assert_not(condition) -> REQUIRE(!condition)
-    catch2_code = re.sub(r'\bcr_assert_not\s*\(\s*(.*?)\s*\)', r'REQUIRE(!\1)', catch2_code)
+    catch2_code = re.sub(r'\bcr_assert_not\s*\(\s*(.*?)\s*\)', r'REQUIRE_FALSE(\1)', catch2_code)
 
     # Convert cr_expect to CHECK
     # cr_expect(condition) -> CHECK(condition)
@@ -29,10 +29,10 @@ def criterion_to_catch2(tests: str):
     
     # Place error message argument to a correct place
     # REQUIRE(condition, "error message") -> REQUIRE(condition) << "error message"
-    catch2_code = re.sub(r'(?<=REQUIRE)(?=\(.+?,\s*"(?:[^"\\]|\\.)*"\);)', r'_MSG', catch2_code)
+    catch2_code = re.sub(r'((?:REQUIRE|CHECK)(?:_FALSE)?)(?=\(.+?,\s*"(?:[^"\\]|\\.)*"\);)', r'\1_MSG', catch2_code)
 
     # Convert include from criterion to catch2
     # #include <criterion/criterion.h> -> #include <catch2/catch.hpp>
-    catch2_code = re.sub(r'#include\s*<criterion/criterion.h>', r'#include <catch2/catch_all.hpp>', catch2_code)
+    catch2_code = re.sub(r'#include\s*<criterion/criterion.h>', '', catch2_code)
 
     return catch2_code

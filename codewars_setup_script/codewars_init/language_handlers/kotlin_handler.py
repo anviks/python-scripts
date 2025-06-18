@@ -8,7 +8,7 @@ class KotlinHandler(LanguageHandler):
     def get_format_args(self, files: list[SourceFile], directory: str, codewars_url: str) -> dict[str, Any]:
         return {
             'codewars_url': codewars_url,
-            'package_name': directory.replace('src/main/java/', '').replace('/', '.'),
+            'package_name': directory.replace('src/main/kotlin/', '').replace('/', '.'),
             'solution': files[0].contents,
             'tests': files[1].contents
         }
