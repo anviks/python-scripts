@@ -67,7 +67,7 @@ def fetch_kata_details(codewars_url: str, language: str) -> tuple[str, str, int 
 
         csrf_token = session.cookies.get('CSRF-TOKEN')
 
-        resp = session.post(f'https://www.codewars.com/kata/projects/{session_id}/c/session', headers={
+        resp = session.post(f'https://www.codewars.com/kata/projects/{session_id}/{language}/session', headers={
             'authorization': jwt,
             'x-csrf-token': unquote(csrf_token),
         })
