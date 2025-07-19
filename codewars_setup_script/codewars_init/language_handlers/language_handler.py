@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..data_transfer import SourceFile
+from ..data_transfer import KataDetails, SourceFile
 
 
 class LanguageHandler(ABC):
@@ -36,5 +36,5 @@ class LanguageHandler(ABC):
     def get_duplicate_suffix(self, number: int):
         return f'_{number}'
 
-    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
+    def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
         pass

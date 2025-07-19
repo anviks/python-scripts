@@ -1,5 +1,6 @@
 import re
 from . import LanguageHandler, SourceFile
+from ..data_transfer import KataDetails
 
 
 class GoHandler(LanguageHandler):
@@ -30,12 +31,12 @@ func TestEntryPoint(t *testing.T) {{
             SourceFile(f'{kata_slug}_test', self.get_extension(), 'test', file_contents[1]),
         ]
 
-    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
-        tests_file = files[1].contents
+    def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
+        tests_file = details.files[1].contents
         tests_file = re.sub(
             r'import \(.*?\)',
             self.IMPORTS_REPLACEMENT.format(directory=kata_directory),
             tests_file,
             flags=re.DOTALL
         )
-        files[1].contents = tests_file
+        details.files[1].contents = tests_file

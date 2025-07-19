@@ -184,7 +184,7 @@ def main():
     if not kata_directory:
         return
 
-    handler.edit_file_contents(details.files, kata_directory)
+    handler.edit_file_contents(details, kata_directory)
     format_vars = handler.get_format_args(details.files, kata_directory, codewars_url)
     create_files(kata_directory, details.files, details.description, language, format_vars)
 

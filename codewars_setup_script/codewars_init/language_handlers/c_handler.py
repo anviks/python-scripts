@@ -1,6 +1,7 @@
 from typing import Any
 
 from . import LanguageHandler, SourceFile
+from ..data_transfer import KataDetails
 from ..framework_transformers.replace_c_tests import criterion_to_catch2
 
 
@@ -27,5 +28,5 @@ class CHandler(LanguageHandler):
     def get_directory(self) -> str:
         return 'src/solutions/'
 
-    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
-        files[1].contents = criterion_to_catch2(files[1].contents)
+    def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
+        details.files[1].contents = criterion_to_catch2(details.files[1].contents)

@@ -2,6 +2,7 @@ import re
 from typing import Any
 
 from . import LanguageHandler, SourceFile
+from ..data_transfer import KataDetails
 
 
 class KotlinHandler(LanguageHandler):
@@ -34,7 +35,7 @@ class KotlinHandler(LanguageHandler):
             SourceFile(test_file_name, self.get_extension(), 'test', file_contents[1])
         ]
 
-    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
+    def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
         for file in files:
             file.contents = '\n'.join(line for line in file.contents.splitlines()
                                       if not line.startswith('package '))
