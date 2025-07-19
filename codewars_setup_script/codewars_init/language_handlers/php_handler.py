@@ -10,11 +10,11 @@ class PhpHandler(LanguageHandler):
     def get_directory(self) -> str:
         return 'src/solutions/'
 
-    def get_files_to_create(self, kata_slug: str, files: list[SourceFile]) -> list[SourceFile]:
+    def get_files_to_create(self, kata_slug: str, file_contents: list[str]) -> list[SourceFile]:
         class_name = kata_slug.title().replace('_', '') + 'Test'
-        files[1].contents = re.sub(r'(?<=class )\w+(?=\s*extends TestCase)', class_name, files[1].contents)
+        file_contents[1] = re.sub(r'(?<=class )\w+(?=\s*extends TestCase)', class_name, file_contents[1])
         
         return [
-            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', files[0].contents),
-            SourceFile(class_name, self.get_extension(), 'test', files[1].contents)
+            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', file_contents[0]),
+            SourceFile(class_name, self.get_extension(), 'test', file_contents[1])
         ]

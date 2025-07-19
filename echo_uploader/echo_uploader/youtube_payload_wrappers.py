@@ -29,7 +29,7 @@ class PlaylistListResponse:
             channelTitle: str
             tags: list[str]
             defaultLanguage: str
-            localized: 'Playlist.Localization'
+            localized: 'PlaylistListResponse.Playlist.Localization'
             defaultAudioLanguage: str
 
             class Thumbnail:

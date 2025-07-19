@@ -2,5 +2,5 @@
  * {codewars_url}
  */
 
-import {{  }} from './{solution_file_name}.ts';
+import {{  }} from './{solution_file_name}';
 {tests}

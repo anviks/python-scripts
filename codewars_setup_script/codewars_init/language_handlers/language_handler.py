@@ -1,14 +1,7 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any
 
-
-@dataclass
-class SourceFile:
-    name: str = ''
-    extension: str = ''
-    template_name: str = ''
-    contents: str = ''
+from ..data_transfer import SourceFile
 
 
 class LanguageHandler(ABC):
@@ -28,13 +21,13 @@ class LanguageHandler(ABC):
             'tests': files[1].contents
         }
 
-    def get_files_to_create(self, kata_slug: str, files: list[SourceFile]) -> list[SourceFile]:
+    def get_files_to_create(self, kata_slug: str, file_contents: list[str]) -> list[SourceFile]:
         """
         Return a list of tuples with file names (without extension) and their template names.
         """
         return [
-            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', files[0].contents),
-            SourceFile(f'test_{kata_slug}', self.get_extension(), 'test', files[1].contents)
+            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', file_contents[0]),
+            SourceFile(f'test_{kata_slug}', self.get_extension(), 'test', file_contents[1])
         ]
 
     def get_numeric_folder_prefix(self):
@@ -43,5 +36,5 @@ class LanguageHandler(ABC):
     def get_duplicate_suffix(self, number: int):
         return f'_{number}'
 
-    def edit_file_contents(self, files: list[SourceFile]) -> None:
+    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
         pass

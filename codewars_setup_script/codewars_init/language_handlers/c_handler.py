@@ -3,6 +3,7 @@ from typing import Any
 from . import LanguageHandler, SourceFile
 from ..framework_transformers.replace_c_tests import criterion_to_catch2
 
+
 class CHandler(LanguageHandler):
     def get_format_args(self, files: list[SourceFile], directory: str, codewars_url: str) -> dict[str, Any]:
         return {
@@ -16,15 +17,15 @@ class CHandler(LanguageHandler):
     def get_extension(self) -> str:
         return 'c'
 
-    def get_files_to_create(self, kata_slug: str, files: list[SourceFile]) -> list[SourceFile]:
+    def get_files_to_create(self, kata_slug: str, file_contents: list[str]) -> list[SourceFile]:
         return [
-            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', files[0].contents),
-            SourceFile(f'test_{kata_slug}', 'cpp', 'test', files[1].contents),
+            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', file_contents[0]),
+            SourceFile(f'test_{kata_slug}', 'cpp', 'test', file_contents[1]),
             SourceFile(f'solution_{kata_slug}', 'h', 'header')
         ]
 
     def get_directory(self) -> str:
         return 'src/solutions/'
 
-    def edit_file_contents(self, files: list[SourceFile]) -> None:
+    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
         files[1].contents = criterion_to_catch2(files[1].contents)

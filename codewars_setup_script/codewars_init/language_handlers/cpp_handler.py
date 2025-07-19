@@ -13,20 +13,19 @@ class CppHandler(LanguageHandler):
             'solution': files[0].contents,
             'tests': files[1].contents
         }
-    
+
     def get_extension(self) -> str:
         return 'cpp'
 
-    def get_files_to_create(self, kata_slug: str, files: list[SourceFile]) -> list[SourceFile]:
+    def get_files_to_create(self, kata_slug: str, file_contents: list[str]) -> list[SourceFile]:
         return [
-            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', files[0].contents),
-            SourceFile(f'test_{kata_slug}', self.get_extension(), 'test', files[1].contents),
+            SourceFile(f'solution_{kata_slug}', self.get_extension(), 'solution', file_contents[0]),
+            SourceFile(f'test_{kata_slug}', self.get_extension(), 'test', file_contents[1].contents),
             SourceFile(f'solution_{kata_slug}', 'hpp', 'header')
         ]
 
     def get_directory(self) -> str:
         return 'src/solutions/'
 
-    def edit_file_contents(self, files: list[SourceFile]) -> None:
+    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
         files[1].contents = igloo_to_catch2(files[1].contents)
-    

@@ -7,5 +7,6 @@ extern "C" {{
 }}
 
 #include "../../../test_macros.hpp"
+#include <catch2/catch_all.hpp>
 
 {tests}

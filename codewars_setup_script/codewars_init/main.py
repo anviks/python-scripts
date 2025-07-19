@@ -7,8 +7,9 @@ from urllib.parse import unquote
 
 from requests import Session, get
 
+from .data_transfer import KataDetails
 from .framework_transformers.helpers import parse_conditional_rendering
-from .language_handlers import CHandler, CppHandler, JavaHandler, JavascriptHandler, KotlinHandler, LanguageHandler, \
+from .language_handlers import CHandler, CppHandler, GoHandler, JavaHandler, JavascriptHandler, KotlinHandler, LanguageHandler, \
     PhpHandler, PythonHandler, RustHandler, SourceFile, TypescriptHandler
 
 CURRENT_PATH = os.path.dirname(__file__)
@@ -19,6 +20,7 @@ class LanguageFactory:
     handlers = {
         'c': CHandler,
         'cpp': CppHandler,
+        'go': GoHandler,
         'java': JavaHandler,
         'javascript': JavascriptHandler,
         'kotlin': KotlinHandler,
@@ -46,7 +48,7 @@ def get_difficulty_directory(difficulty: int | None, handler: LanguageHandler) -
     return directory
 
 
-def fetch_kata_details(codewars_url: str, language: str) -> tuple[str, str, int | None, str, list[SourceFile]]:
+def fetch_kata_details(codewars_url: str, language: str) -> KataDetails:
     """
     Fetch the kata details including title, difficulty, and code snippets.
     """
@@ -76,7 +78,7 @@ def fetch_kata_details(codewars_url: str, language: str) -> tuple[str, str, int 
 
     files = [SourceFile(contents=result['setup']), SourceFile(contents=result['exampleFixture'])]
 
-    return kata_title, slug, difficulty, description, files
+    return KataDetails(kata_title, slug, difficulty, description, files)
 
 
 def load_history() -> dict:
@@ -173,18 +175,18 @@ def main():
 
     update_history(history, language, previous_language)
 
-    kata_title, kata_slug, difficulty, description, files = fetch_kata_details(codewars_url, language)
-    kata_directory = get_difficulty_directory(difficulty, handler) + '/' + kata_slug
+    details = fetch_kata_details(codewars_url, language)
+    kata_directory = get_difficulty_directory(details.difficulty, handler) + '/' + details.slug
 
-    files = handler.get_files_to_create(kata_slug, files)
-    kata_directory, files = handle_existing_directory(kata_directory, files, handler)
+    details.files = handler.get_files_to_create(details.slug, [file.contents for file in details.files])
+    kata_directory, details.files = handle_existing_directory(kata_directory, details.files, handler)
 
     if not kata_directory:
         return
 
-    handler.edit_file_contents(files)
-    format_vars = handler.get_format_args(files, kata_directory, codewars_url)
-    create_files(kata_directory, files, description, language, format_vars)
+    handler.edit_file_contents(details.files, kata_directory)
+    format_vars = handler.get_format_args(details.files, kata_directory, codewars_url)
+    create_files(kata_directory, details.files, details.description, language, format_vars)
 
 
 if __name__ == '__main__':

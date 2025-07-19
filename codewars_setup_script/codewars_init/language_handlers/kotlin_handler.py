@@ -19,22 +19,22 @@ class KotlinHandler(LanguageHandler):
     def get_directory(self) -> str:
         return 'src/main/kotlin/me/anviks/codewars/solutions/'
 
-    def get_files_to_create(self, kata_slug: str, files: list[SourceFile]) -> list[SourceFile]:
+    def get_files_to_create(self, kata_slug: str, file_contents: list[str]) -> list[SourceFile]:
         class_pattern = re.compile(r'(?:public +)?(?:class|object) +(\w+)')
-        kata_class_match = class_pattern.search(files[0].contents)
+        kata_class_match = class_pattern.search(file_contents[0])
 
         if not kata_class_match:
             solution_file_name = 'Solution'
         else:
             solution_file_name = kata_class_match.group(1)
-        test_file_name = class_pattern.search(files[1].contents).group(1)
+        test_file_name = class_pattern.search(file_contents[1]).group(1)
         
         return [
-            SourceFile(solution_file_name, self.get_extension(), 'solution', files[0].contents),
-            SourceFile(test_file_name, self.get_extension(), 'test', files[1].contents)
+            SourceFile(solution_file_name, self.get_extension(), 'solution', file_contents[0]),
+            SourceFile(test_file_name, self.get_extension(), 'test', file_contents[1])
         ]
 
-    def edit_file_contents(self, files: list[SourceFile]) -> None:
+    def edit_file_contents(self, files: list[SourceFile], kata_directory: str) -> None:
         for file in files:
             file.contents = '\n'.join(line for line in file.contents.splitlines()
                                       if not line.startswith('package '))
