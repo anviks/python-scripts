@@ -13,9 +13,9 @@ import (
     . "github.com/onsi/gomega"
 )
 
-func TestEntryPoint(t *testing.T) {{
+func Test{pascal_case_slug}(t *testing.T) {{
     RegisterFailHandler(Fail)
-    RunSpecs(t, "Tests Suite")
+    RunSpecs(t, "{pascal_case_slug} Suite")
 }}
 """
 
@@ -32,10 +32,12 @@ func TestEntryPoint(t *testing.T) {{
         ]
 
     def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
+        pascal_case_slug = details.slug.replace('_', ' ').title().replace(' ', '')
+
         tests_file = details.files[1].contents
         tests_file = re.sub(
             r'import \(.*?\)',
-            self.IMPORTS_REPLACEMENT.format(directory=kata_directory),
+            self.IMPORTS_REPLACEMENT.format(directory=kata_directory, pascal_case_slug=pascal_case_slug),
             tests_file,
             flags=re.DOTALL
         )
