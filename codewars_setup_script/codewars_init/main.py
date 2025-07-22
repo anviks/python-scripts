@@ -145,7 +145,7 @@ def create_files(
     os.makedirs(directory, exist_ok=True)
 
     for file in files:
-        with (open(f'{TEMPLATES_DIR}/{language}/{file.template_name}', 'r', encoding='utf-8') as template,
+        with (open(f'{TEMPLATES_DIR}/{language}/{file.template_name}/.txt', 'r', encoding='utf-8') as template,
               open(f'{directory}/{file.name}.{file.extension}', 'w', encoding='utf-8') as kata_file):
             kata_file.write(template.read().format_map(format_vars))
 

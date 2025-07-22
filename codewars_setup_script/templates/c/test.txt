@@ -1,0 +1,7 @@
+/*
+ * {codewars_url}
+ */
+
+#include "{solution_file_name}.h"
+
+{tests}
