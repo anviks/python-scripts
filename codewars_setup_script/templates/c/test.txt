@@ -2,6 +2,10 @@
  * {codewars_url}
  */
 
+extern "C" {{
 #include "{solution_file_name}.h"
+}}
+
+#include "../../../criterion_wrapper.hpp"
 
 {tests}

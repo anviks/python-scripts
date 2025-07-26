@@ -27,6 +27,7 @@ class CHandler(LanguageHandler):
 
     def get_directory(self) -> str:
         return 'src/solutions/'
-
+    
     def edit_file_contents(self, details: KataDetails, kata_directory: str) -> None:
-        details.files[1].contents = criterion_to_catch2(details.files[1].contents)
+        details.files[1].contents = '\n'.join(line for line in details.files[1].contents.splitlines()
+                                      if '#include <criterion/criterion.h>' not in line)

@@ -1,14 +1,6 @@
 #ifndef CODEWARS_C_{solution_file_name_upper}_H
 #define CODEWARS_C_{solution_file_name_upper}_H
 
-#ifdef __cplusplus
-extern "C" {{
-#endif
 
-
-
-#ifdef __cplusplus
-}}
-#endif
 
 #endif //CODEWARS_C_{solution_file_name_upper}_H
