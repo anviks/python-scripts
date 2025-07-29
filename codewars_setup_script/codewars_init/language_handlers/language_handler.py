@@ -17,6 +17,7 @@ class LanguageHandler(ABC):
         return {
             'codewars_url': codewars_url,
             'solution_file_name': files[0].name,
+            'test_file_name': files[1].name,
             'solution': files[0].contents,
             'tests': files[1].contents
         }

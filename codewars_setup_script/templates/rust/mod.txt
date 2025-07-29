@@ -1,0 +1,2 @@
+pub mod {solution_file_name};
+pub mod {test_file_name};
