@@ -7,7 +7,7 @@ from os.path import join, isdir
 import platformdirs
 import yaml
 from googleapiclient.http import HttpRequest
-from utils_anviks import dict_to_object
+from objectify import dict_to_object
 
 from .config_wrapper import EchoUploaderConfig
 from .upload import YouTubeUploader

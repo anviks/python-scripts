@@ -2,7 +2,6 @@ import logging
 import os
 import time
 from typing import Any, Literal
-import platformdirs
 
 import httplib2
 import jsonpickle
@@ -14,7 +13,7 @@ from googleapiclient.discovery import build, Resource
 from googleapiclient.errors import HttpError
 from googleapiclient.errors import ResumableUploadError
 from googleapiclient.http import MediaFileUpload, HttpRequest, MediaUploadProgress
-from utils_anviks import dict_to_object
+from objectify import dict_to_object
 
 from .youtube_payload_wrappers import PlaylistListResponse
 
@@ -77,7 +76,7 @@ class YouTubeUploader:
             with open(self.token_path, "w") as f:
                 f.write(creds.to_json())
 
-        self.youtube_resource: Resource = build(API_SERVICE_NAME, API_VERSION, credentials=creds)
+        self.youtube_resource = build(API_SERVICE_NAME, API_VERSION, credentials=creds)
 
     def find_playlist_id(self, name: str) -> str | None:
         """Find a playlist by name. Quota cost: 1 unit per page."""
