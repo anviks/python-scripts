@@ -1,4 +1,0 @@
-#ifndef CODEWARS_CPP_{solution_file_name_upper}_HPP
-#define CODEWARS_CPP_{solution_file_name_upper}_HPP
-
-#endif //CODEWARS_CPP_{solution_file_name_upper}_HPP

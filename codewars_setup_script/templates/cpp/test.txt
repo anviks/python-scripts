@@ -1,8 +1,0 @@
-/*
- * {codewars_url}
- */
-
-#include "{solution_file_name}.hpp"
-#include <catch2/catch_all.hpp>
-
-{tests}

@@ -1,7 +1,0 @@
-/*
- * {codewars_url}
- */
-
-#include "{solution_file_name}.hpp"
-
-{solution}

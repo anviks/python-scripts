@@ -1,6 +1,0 @@
-/*
- * {codewars_url}
- */
-
-import {{  }} from './{solution_file_name}.js';
-{tests}
