@@ -145,31 +145,28 @@ class Detector:
 
     def should_fire(self, env: Envelope) -> bool:
         cutoff_ms = time.time_ns() // 1_000_000 - self.config["window"] * 1000
+        data = env.get("dataMessage", {})
 
-        if text := env.get("dataMessage", {}).get("message"):
-            if text.lower().strip() == self.config["trigger_msg"]:
-                self.trg_messages.append((env["sourceUuid"], env["timestamp"]))
-                self.trg_messages = [m for m in self.trg_messages if m[1] > cutoff_ms]
-                if len(self.trg_messages) >= self.config["msg_count"]:
-                    return True
-        elif reaction := env.get("dataMessage", {}).get("reaction"):
+        if text := data.get("message"):
+            if text.lower().strip() != self.config["trigger_msg"]:
+                return False
+            self.trg_messages.append((env["sourceUuid"], env["timestamp"]))
+            self.trg_messages = [m for m in self.trg_messages if m[1] > cutoff_ms]
+            return len(self.trg_messages) >= self.config["msg_count"]
+
+        if reaction := data.get("reaction"):
             key = (reaction["targetAuthorUuid"], reaction["targetSentTimestamp"])
-            reactor = env["sourceUuid"]
-
             self.reactions = {
                 k: v for k, v in self.reactions.items() if k[1] > cutoff_ms
             }
             if key[1] <= cutoff_ms:
                 return False
-
             reactors = self.reactions.setdefault(key, set())
             if reaction["isRemove"]:
-                reactors.discard(reactor)
+                reactors.discard(env["sourceUuid"])
             else:
-                reactors.add(reactor)
-
-            if len(reactors) >= self.config["emoji_count"]:
-                return True
+                reactors.add(env["sourceUuid"])
+            return len(reactors) >= self.config["emoji_count"]
 
         return False
 
