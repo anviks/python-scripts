@@ -6,6 +6,7 @@
 # ]
 # ///
 
+from dataclasses import dataclass, field
 import json
 import signal
 import time
@@ -102,12 +103,6 @@ emoji_count = 5
 window = 7200
 """
 
-
-### Global variables
-msg_counter = 0
-reactions: dict[tuple[str, int], set[str]] = {}
-trg_messages: list[tuple[str, int]] = []
-
 # TODO: Add a cooldown, an alarm shouldn't be triggered many times in a few minutes/hours
 # TODO: Add a channel filter
 
@@ -142,9 +137,44 @@ def fire_all():
             print(f"Hook {hook.name} failed: {e}", flush=True)
 
 
-def listen(config: Config):
-    global msg_counter, trg_messages, reactions
+@dataclass
+class Detector:
+    config: Config
+    trg_messages: list[tuple[str, int]] = field(default_factory=list)
+    reactions: dict[tuple[str, int], set[str]] = field(default_factory=dict)
 
+    def should_fire(self, env: Envelope) -> bool:
+        cutoff_ms = time.time_ns() // 1_000_000 - self.config["window"] * 1000
+
+        if text := env.get("dataMessage", {}).get("message"):
+            if text.lower().strip() == self.config["trigger_msg"]:
+                self.trg_messages.append((env["sourceUuid"], env["timestamp"]))
+                self.trg_messages = [m for m in self.trg_messages if m[1] > cutoff_ms]
+                if len(self.trg_messages) >= self.config["msg_count"]:
+                    return True
+        elif reaction := env.get("dataMessage", {}).get("reaction"):
+            key = (reaction["targetAuthorUuid"], reaction["targetSentTimestamp"])
+            reactor = env["sourceUuid"]
+
+            self.reactions = {
+                k: v for k, v in self.reactions.items() if k[1] > cutoff_ms
+            }
+            if key[1] <= cutoff_ms:
+                return False
+
+            reactors = self.reactions.setdefault(key, set())
+            if reaction["isRemove"]:
+                reactors.discard(reactor)
+            else:
+                reactors.add(reactor)
+
+            if len(reactors) >= self.config["emoji_count"]:
+                return True
+
+        return False
+
+
+def listen(config: Config, detector: Detector):
     with requests.get(config["events_url"], stream=True, timeout=(5, None)) as r:
         r.raise_for_status()
         for line in r.iter_lines():
@@ -156,31 +186,8 @@ def listen(config: Config):
             with open("events.jsonl", "a") as f:
                 f.write(json.dumps(event) + "\n")
 
-            cutoff_ms = time.time_ns() // 1_000_000 - config["window"] * 1000
-
-            env = event.get("envelope", {})
-            if text := env.get("dataMessage", {}).get("message"):
-                if text.lower().strip() == config["trigger_msg"]:
-                    trg_messages.append((env["sourceUuid"], env["timestamp"]))
-                    trg_messages = [m for m in trg_messages if m[1] > cutoff_ms]
-                    if len(trg_messages) >= config["msg_count"]:
-                        fire_all()
-            elif reaction := env.get("dataMessage", {}).get("reaction"):
-                key = (reaction["targetAuthorUuid"], reaction["targetSentTimestamp"])
-                reactor = env["sourceUuid"]
-
-                reactions = {k: v for k, v in reactions.items() if k[1] > cutoff_ms}
-                if key[1] <= cutoff_ms:
-                    continue
-
-                reactors = reactions.setdefault(key, set())
-                if reaction["isRemove"]:
-                    reactors.discard(reactor)
-                else:
-                    reactors.add(reactor)
-
-                if len(reactors) >= config["emoji_count"]:
-                    fire_all()
+            if detector.should_fire(event.get("envelope", {})):
+                fire_all()
 
 
 def main():
@@ -194,9 +201,10 @@ def main():
     if not hooks():
         raise SystemExit(f"No executable hooks in {HOOKS_DIR}")
 
+    detector = Detector(config)
     while True:
         try:
-            listen(config)
+            listen(config, detector)
         except (requests.RequestException, json.JSONDecodeError) as e:
             print(f"Disconnected ({e}), retrying in 5s", flush=True)
             time.sleep(5)
