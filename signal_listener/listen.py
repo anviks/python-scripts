@@ -80,6 +80,7 @@ class Config(TypedDict):
     msg_count: int
     emoji_count: int
     window: int
+    cooldown: int
 
 
 ### Constants
@@ -101,9 +102,11 @@ emoji_count = 5
 
 # Time window (in seconds) for triggering messages and emojis to appear
 window = 7200
+
+# Minimum time (in seconds) between two hook runs, so they don't fire repeatedly
+cooldown = 14400
 """
 
-# TODO: Add a cooldown, an alarm shouldn't be triggered many times in a few minutes/hours
 # TODO: Add a channel filter
 
 
@@ -142,8 +145,23 @@ class Detector:
     config: Config
     trg_messages: list[tuple[str, int]] = field(default_factory=list)
     reactions: dict[tuple[str, int], set[str]] = field(default_factory=dict)
+    last_fired: float | None = None
 
     def should_fire(self, env: Envelope) -> bool:
+        if not self._threshold_reached(env):
+            return False
+        now = time.monotonic()
+        if self.last_fired is not None:
+            remaining = self.config["cooldown"] - (now - self.last_fired)
+            if remaining > 0:
+                print(f"Triggered during cooldown, {remaining:.0f}s left", flush=True)
+                return False
+        self.last_fired = now
+        self.trg_messages.clear()
+        self.reactions.clear()
+        return True
+
+    def _threshold_reached(self, env: Envelope) -> bool:
         cutoff_ms = time.time_ns() // 1_000_000 - self.config["window"] * 1000
         data = env.get("dataMessage", {})
 
