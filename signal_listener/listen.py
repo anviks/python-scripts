@@ -8,6 +8,7 @@
 
 from dataclasses import dataclass, field
 import json
+import re
 import signal
 import time
 import tomllib
@@ -75,12 +76,13 @@ class ModelItem(TypedDict):
 
 
 class Config(TypedDict):
-    events_url: str
+    api_url: str
     trigger_msg: str
     msg_count: int
     emoji_count: int
     window: int
     cooldown: int
+    channels: list[str]
 
 
 ### Constants
@@ -90,7 +92,7 @@ CONFIG_DIR = Path(
 CONFIG_PATH = CONFIG_DIR / "config.toml"
 HOOKS_DIR = CONFIG_DIR / "hooks.d"
 CONFIG_TEMPLATE = """\
-events_url = "http://<signal-api-host>:9000/api/v1/events"
+api_url = "http://<signal-api-host>:9000/api/v1"
 
 trigger_msg = "hi"
 
@@ -105,9 +107,12 @@ window = 7200
 
 # Minimum time (in seconds) between two hook runs, so they don't fire repeatedly
 cooldown = 14400
-"""
 
-# TODO: Add a channel filter
+# Only react to messages from these channels: group names or IDs, or phone numbers
+# / UUIDs of direct-message senders. Leave empty to listen to everything.
+# IDs are the robust choice: names aren't unique and stop matching if the group is renamed.
+channels = []
+"""
 
 
 def load_config() -> Config:
@@ -119,6 +124,40 @@ def load_config() -> Config:
     if missing := [k for k in Config.__required_keys__ if k not in config]:
         raise SystemExit(f"Missing keys in {CONFIG_PATH}: {', '.join(sorted(missing))}")
     return cast(Config, config)
+
+
+PHONE_RE = re.compile(r"^\+\d+$")
+UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I
+)
+
+
+def validate_channels(config: Config):
+    if not config["channels"]:
+        return
+    base = config["api_url"].rstrip("/")
+    try:
+        known: set[str] = set()
+        accounts = requests.get(f"{base}/accounts", timeout=5)
+        accounts.raise_for_status()
+        for number in accounts.json():
+            groups = requests.get(f"{base}/groups/{number}", timeout=5)
+            groups.raise_for_status()
+            for g in groups.json():
+                known.update(
+                    filter(None, (g.get("name"), g.get("id"), g.get("internal_id")))
+                )
+    except (requests.RequestException, ValueError, AttributeError) as e:
+        print(f"Couldn't validate channels against the API ({e}), skipping", flush=True)
+        return
+    for entry in config["channels"]:
+        if entry in known or PHONE_RE.match(entry) or UUID_RE.match(entry):
+            continue
+        print(
+            f'Warning: channel "{entry}" matches no known group name/ID, '
+            "phone number or UUID (typo?)",
+            flush=True,
+        )
 
 
 def hooks() -> list[Path]:
@@ -146,9 +185,10 @@ class Detector:
     trg_messages: list[tuple[str, int]] = field(default_factory=list)
     reactions: dict[tuple[str, int], set[str]] = field(default_factory=dict)
     last_fired: float | None = None
+    ignored: set[str] = field(default_factory=set)
 
     def should_fire(self, env: Envelope) -> bool:
-        if not self._threshold_reached(env):
+        if not self._in_channels(env) or not self._threshold_reached(env):
             return False
         now = time.monotonic()
         if self.last_fired is not None:
@@ -160,6 +200,28 @@ class Detector:
         self.trg_messages.clear()
         self.reactions.clear()
         return True
+
+    def _in_channels(self, env: Envelope) -> bool:
+        if not self.config["channels"]:
+            return True
+        if group := env.get("dataMessage", {}).get("groupInfo"):
+            key = group["groupId"]
+            ok = (
+                key in self.config["channels"]
+                or group.get("groupName") in self.config["channels"]
+            )
+            desc = f'group "{group.get("groupName")}" (id {key})'
+        else:
+            key = env.get("sourceUuid", "")
+            ok = (
+                env.get("sourceNumber") in self.config["channels"]
+                or key in self.config["channels"]
+            )
+            desc = f"sender {env.get('sourceNumber') or key}"
+        if not ok and key not in self.ignored:
+            self.ignored.add(key)
+            print(f"Ignoring {desc}, not in channels", flush=True)
+        return ok
 
     def _threshold_reached(self, env: Envelope) -> bool:
         cutoff_ms = time.time_ns() // 1_000_000 - self.config["window"] * 1000
@@ -190,7 +252,8 @@ class Detector:
 
 
 def listen(config: Config, detector: Detector):
-    with requests.get(config["events_url"], stream=True, timeout=(5, None)) as r:
+    events_url = f"{config['api_url'].rstrip('/')}/events"
+    with requests.get(events_url, stream=True, timeout=(5, None)) as r:
         r.raise_for_status()
         for line in r.iter_lines():
             line = line.decode()
@@ -216,6 +279,7 @@ def main():
     if not hooks():
         raise SystemExit(f"No executable hooks in {HOOKS_DIR}")
 
+    validate_channels(config)
     detector = Detector(config)
     while True:
         try:
