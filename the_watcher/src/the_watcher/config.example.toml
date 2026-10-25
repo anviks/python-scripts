@@ -1,0 +1,10 @@
+# List of TMDB movie id-s to watch
+movies = [
+    # 1003596,  # Avengers: Doomsday
+]
+
+# TMDB token for fetching movie info
+tmdb_token=''
+
+# Discord webhook url, to which updates are sent
+webhook_url=''
