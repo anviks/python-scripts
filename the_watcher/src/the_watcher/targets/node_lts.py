@@ -48,6 +48,6 @@ def check_node_lts(state: State, webhook_url: str):
             requests.post(
                 webhook_url,
                 json={
-                    "content": f"node:lts-alpine image upgraded its node version to {cur_ver_docker}"
+                    "content": f"Docker's node:lts-alpine image upgraded its node version to {cur_ver_docker}"
                 },
             )
