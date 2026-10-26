@@ -75,7 +75,7 @@ def check_movies(config: Config):
         width = max(map(len, provider_names))
         half = ceil(len(provider_names) / 2)
         table = "\n".join(
-            f"{a:<{width}}  {b}".rstrip()
+            f"{a:<{width}}  {b:<{width}}"
             for a, b in zip_longest(
                 provider_names[:half], provider_names[half:], fillvalue=""
             )
