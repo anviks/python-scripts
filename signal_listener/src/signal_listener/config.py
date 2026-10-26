@@ -18,8 +18,9 @@ hooks_dir = config_dir / "hooks.d"
 
 
 def load_config() -> Config:
-    if not config_dir.exists():
+    if not config_path.exists():
         config_dir.mkdir(parents=True, exist_ok=True)
+        hooks_dir.mkdir(exist_ok=True)
         (Path(__file__).parent / "config.example.toml").copy(config_path)
         raise SystemExit(f"Created {config_path}, fill it in and run again")
     config = tomllib.loads(config_path.read_text())
