@@ -1,129 +1,14 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.14"
-# dependencies = [
-#     "requests>=2.34.2",
-# ]
-# ///
-
 from dataclasses import dataclass, field
 import json
 import re
 import signal
 import time
-import tomllib
-from typing import NotRequired, TypedDict, cast
-import os
 import subprocess
-from pathlib import Path
 
 import requests
 
-### Types
-
-
-class TypingMessage(TypedDict):
-    action: str
-    timestamp: int
-    groupId: NotRequired[str]
-
-
-class GroupInfo(TypedDict):
-    groupId: str
-    groupName: str
-    revision: int
-    type: str
-
-
-class Reaction(TypedDict):
-    emoji: str
-    targetAuthor: str
-    targetAuthorNumber: str
-    targetAuthorUuid: str
-    targetSentTimestamp: int
-    isRemove: bool
-
-
-class DataMessage(TypedDict):
-    timestamp: int
-    message: str | None
-    expiresInSeconds: int
-    isExpirationUpdate: bool
-    viewOnce: bool
-    isEndSession: bool
-    isProfileKeyUpdate: bool
-    hasProfileKey: bool
-    groupInfo: NotRequired[GroupInfo]
-    reaction: NotRequired[Reaction]
-
-
-class Envelope(TypedDict):
-    source: str
-    sourceNumber: str | None
-    sourceUuid: str
-    sourceName: str
-    sourceDevice: int
-    timestamp: int
-    serverReceivedTimestamp: int
-    serverDeliveredTimestamp: int
-    typingMessage: NotRequired[TypingMessage]
-    dataMessage: NotRequired[DataMessage]
-
-
-class ModelItem(TypedDict):
-    envelope: Envelope
-    account: str
-
-
-class Config(TypedDict):
-    api_url: str
-    trigger_msg: str
-    msg_count: int
-    emoji_count: int
-    window: int
-    cooldown: int
-    channels: list[str]
-
-
-### Constants
-CONFIG_DIR = Path(
-    os.getenv("SIGNAL_LISTENER_CONFIG_DIR", "~/.config/signal_listener")
-).expanduser()
-CONFIG_PATH = CONFIG_DIR / "config.toml"
-HOOKS_DIR = CONFIG_DIR / "hooks.d"
-CONFIG_TEMPLATE = """\
-api_url = "http://<signal-api-host>:9000/api/v1"
-
-trigger_msg = "hi"
-
-# this many trigger messages within the window...
-msg_count = 5
-
-# ...or this many reactions on one message (max one reaction per person) will trigger the hooks
-emoji_count = 5
-
-# Time window (in seconds) for triggering messages and emojis to appear
-window = 7200
-
-# Minimum time (in seconds) between two hook runs, so they don't fire repeatedly
-cooldown = 14400
-
-# Only react to messages from these channels: group names or IDs, or phone numbers
-# / UUIDs of direct-message senders. Leave empty to listen to everything.
-# IDs are the robust choice: names aren't unique and stop matching if the group is renamed.
-channels = []
-"""
-
-
-def load_config() -> Config:
-    if not CONFIG_PATH.exists():
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        CONFIG_PATH.write_text(CONFIG_TEMPLATE)
-        raise SystemExit(f"Created {CONFIG_PATH}, fill it in and run again")
-    config = tomllib.loads(CONFIG_PATH.read_text())
-    if missing := [k for k in Config.__required_keys__ if k not in config]:
-        raise SystemExit(f"Missing keys in {CONFIG_PATH}: {', '.join(sorted(missing))}")
-    return cast(Config, config)
+from .config import load_config, load_hooks, hooks_dir
+from .types import Config, Envelope, ModelItem
 
 
 PHONE_RE = re.compile(r"^\+\d+$")
@@ -160,16 +45,8 @@ def validate_channels(config: Config):
         )
 
 
-def hooks() -> list[Path]:
-    if not HOOKS_DIR.is_dir():
-        return []
-    return sorted(
-        p for p in HOOKS_DIR.iterdir() if p.is_file() and os.access(p, os.X_OK)
-    )
-
-
 def fire_all():
-    for hook in hooks():
+    for hook in load_hooks():
         try:
             subprocess.Popen(
                 [hook], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -268,16 +145,16 @@ def listen(config: Config, detector: Detector):
                 fire_all()
 
 
-def main():
+def main() -> None:
     # Make SIGTERM run our finally/cleanup instead of killing silently.
-    def handle_sigterm(*args):
+    def handle_sigterm(*_):
         raise SystemExit
 
     signal.signal(signal.SIGTERM, handle_sigterm)
 
     config = load_config()
-    if not hooks():
-        raise SystemExit(f"No executable hooks in {HOOKS_DIR}")
+    if not load_hooks():
+        raise SystemExit(f"No executable hooks in {hooks_dir}")
 
     validate_channels(config)
     detector = Detector(config)
@@ -287,7 +164,3 @@ def main():
         except (requests.RequestException, json.JSONDecodeError) as e:
             print(f"Disconnected ({e}), retrying in 5s", flush=True)
             time.sleep(5)
-
-
-if __name__ == "__main__":
-    main()

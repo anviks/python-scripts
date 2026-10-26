@@ -1,0 +1,20 @@
+api_url = "http://<signal-api-host>:9000/api/v1"
+
+trigger_msg = "hi"
+
+# this many trigger messages within the window...
+msg_count = 5
+
+# ...or this many reactions on one message (max one reaction per person) will trigger the hooks
+emoji_count = 5
+
+# Time window (in seconds) for triggering messages and emojis to appear
+window = 7200
+
+# Minimum time (in seconds) between two hook runs, so they don't fire repeatedly
+cooldown = 14400
+
+# Only react to messages from these channels: group names or IDs, or phone numbers
+# / UUIDs of direct-message senders. Leave empty to listen to everything.
+# IDs are the robust choice: names aren't unique and stop matching if the group is renamed.
+channels = []

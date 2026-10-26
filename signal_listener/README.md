@@ -1,20 +1,24 @@
-## Dependencies
+# Signal Listener
 
-- `uv` - https://docs.astral.sh/uv/getting-started/installation/
+Listens to selected conversations in Signal for messages and reactions, and upon reaching the configured amount of certain messages or reactions, runs custom scripts. The purpose of this is to provide the possibility for custom notification handling for advanced/specific situations in Signal conversations, since in Signal itself, it's only possible to configure notifications per-conversation, but not per-message. As usual, if you want me to extend the functionality, open an issue about it and I will be glad to do it.
+
+## Requirements
+
+- [uv](https://docs.astral.sh/uv/)
+- A running [signal-cli](https://github.com/AsamK/signal-cli) instance
 
 ## Installation
 
-```bash
-SIGNAL_LISTENER_BIN_PATH=~/.local/bin/signal-listener
-export SIGNAL_LISTENER_CONFIG_DIR=~/.config/signal_listener  # Script reads this 
-
-curl -fsSL -o "$SIGNAL_LISTENER_BIN_PATH" https://raw.githubusercontent.com/anviks/python-scripts/main/signal_listener/listen.py
-chmod +x "$SIGNAL_LISTENER_BIN_PATH"
-
-# Creating config (skip if you already have the config files)
-"$SIGNAL_LISTENER_BIN_PATH"  # Creates config.toml and exits if it doesn't exist yet
-mkdir "$SIGNAL_LISTENER_CONFIG_DIR/hooks.d" # Place any scripts here that you want to run when signal-listener is triggered, and make sure they're all executable (chmod +x <file>)
-
-# Now just run the program (or create a systemd service)
-"$SIGNAL_LISTENER_BIN_PATH"
+```sh
+uv tool install "git+https://github.com/anviks/python-scripts#subdirectory=signal_listener"
 ```
+
+## Usage
+
+```sh
+signal-listener
+```
+
+## Configuration
+
+On the first run, [config.example.toml](src/signal_listener/config.example.toml) is copied to `~/.config/signal-listener/config.toml`. Change it according to your needs. In addition, `~/.config/signal-listener/hooks.d` directory is created - place any scripts there that you want to run when signal-listener is triggered; and make sure they're all executable.
