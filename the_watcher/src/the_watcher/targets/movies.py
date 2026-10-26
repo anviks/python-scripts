@@ -1,5 +1,6 @@
 import colorsys
 from io import BytesIO
+from itertools import zip_longest
 from math import ceil
 from PIL import Image
 import requests
@@ -37,15 +38,22 @@ def dominant_color_from_url(url: str) -> tuple[int, int, int]:
     return theme_color(rgb)
 
 
+def tmdb_get(path: str, token: str) -> dict:
+    resp = requests.get(
+        f"https://api.themoviedb.org/3{path}",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
 def check_movies(config: Config):
     for movie in config["movies"]:
         if is_notified("movies", str(movie)):
             continue
 
-        response = requests.get(
-            f"https://api.themoviedb.org/3/movie/{movie}/watch/providers",
-            headers={"Authorization": f"Bearer {config['tmdb_token']}"},
-        ).json()
+        response = tmdb_get(f"/movie/{movie}/watch/providers", config["tmdb_token"])
 
         provider_names = sorted(
             {
@@ -60,35 +68,33 @@ def check_movies(config: Config):
         if not provider_names:
             continue
 
-        info = requests.get(
-            f"https://api.themoviedb.org/3/movie/{movie}",
-            headers={"Authorization": f"Bearer {config['tmdb_token']}"},
-        ).json()
+        info = tmdb_get(f"/movie/{movie}", config["tmdb_token"])
         title = info["title"]
         poster_path = info["poster_path"]
 
         width = max(map(len, provider_names))
-        table = ""
-        row_count = ceil(len(provider_names) / 2)
-        for i in range(row_count):
-            a = provider_names[i]
-            b = provider_names[i + row_count // 2]
-            table += a + " " * (width - len(a) + 2) + b + "\n"
+        half = ceil(len(provider_names) / 2)
+        table = "\n".join(
+            f"{a:<{width}}  {b}".rstrip()
+            for a, b in zip_longest(
+                provider_names[:half], provider_names[half:], fillvalue=""
+            )
+        )
 
-        poster_url = f"https://image.tmdb.org/t/p/original{poster_path}"
-        r, g, b = dominant_color_from_url(poster_url)
-        color = (r << 16) | (g << 8) | b
-
-        payload = {
-            "embeds": [
-                {
-                    "title": f"🎬  {title} is now available!",
-                    "description": f"Available on **{len(provider_names)}** services\n```\n{table}\n```",
-                    "color": color,
-                    "image": {"url": poster_url},
-                },
-            ],
+        embed: dict = {
+            "title": f"🎬  {title} is now available!",
+            "description": f"Available on **{len(provider_names)}** services\n```\n{table}\n```",
         }
+        if poster_path:
+            r, g, b = dominant_color_from_url(
+                f"https://image.tmdb.org/t/p/w342{poster_path}"
+            )
+            embed["color"] = (r << 16) | (g << 8) | b
+            embed["image"] = {
+                "url": f"https://image.tmdb.org/t/p/original{poster_path}"
+            }
 
-        requests.post(config["webhook_url"], json=payload)
+        requests.post(
+            config["webhook_url"], json={"embeds": [embed]}, timeout=10
+        ).raise_for_status()
         mark_notified("movies", str(movie))
