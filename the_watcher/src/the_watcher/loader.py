@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import tomllib
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import msgspec
 from platformdirs import user_config_dir, user_state_dir
@@ -33,4 +33,12 @@ def load_config() -> Config:
     if not config_path.exists():
         config_path.parent.mkdir(parents=True, exist_ok=True)
         (Path(__file__).parent / "config.example.toml").copy(config_path)
-    return cast(Config, tomllib.loads(config_path.read_text()))
+        config_path.chmod(0o600)
+        raise SystemExit(f"Created {config_path}, fill it in and run again")
+    try:
+        config = msgspec.convert(tomllib.loads(config_path.read_text()), type=Config)
+    except (tomllib.TOMLDecodeError, msgspec.ValidationError) as e:
+        raise SystemExit(f"Invalid config in {config_path}: {e}")
+    if not config["webhook_url"]:
+        raise SystemExit(f"Set webhook_url in {config_path}")
+    return config
