@@ -139,9 +139,6 @@ def listen(config: Config, detector: Detector):
                 continue
 
             event: ModelItem = json.loads(line[5:])
-            with open("events.jsonl", "a") as f:
-                f.write(json.dumps(event) + "\n")
-
             if detector.should_fire(event.get("envelope", {})):
                 fire_all()
 
