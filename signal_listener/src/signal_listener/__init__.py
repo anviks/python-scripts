@@ -10,7 +10,6 @@ import requests
 from .config import load_config, load_hooks, hooks_dir
 from .types import Config, Envelope, ModelItem
 
-
 PHONE_RE = re.compile(r"^\+\d+$")
 UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I
@@ -46,7 +45,9 @@ def validate_channels(config: Config):
 
 
 def fire_all():
-    for hook in load_hooks():
+    if not (hooks := load_hooks()):
+        print(f"Triggered, but no executable hooks in {hooks_dir}", flush=True)
+    for hook in hooks:
         try:
             subprocess.Popen(
                 [hook], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
