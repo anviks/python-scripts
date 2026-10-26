@@ -3,16 +3,13 @@ from pathlib import Path
 import tomllib
 from typing import cast
 
+from platformdirs import user_config_dir
+
 from .types import Config
 
-
-def _dir(env: str, xdg: str, default: str) -> Path:
-    if d := os.getenv(env):
-        return Path(d)
-    return Path(os.getenv(xdg, Path.home() / default)) / "signal-listener"
-
-
-config_dir = _dir("CONFIGURATION_DIRECTORY", "XDG_CONFIG_HOME", ".config")
+config_dir = Path(
+    os.getenv("CONFIGURATION_DIRECTORY") or user_config_dir("signal-listener")
+)
 config_path = config_dir / "config.toml"
 hooks_dir = config_dir / "hooks.d"
 

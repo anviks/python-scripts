@@ -11,7 +11,7 @@ Small one-shot checks that post to a Discord webhook when something I care about
 
 ## Requirements
 
-- Python 3.14+ and [uv](https://docs.astral.sh/uv/)
+- [uv](https://docs.astral.sh/uv/)
 - A Discord [webhook URL](https://support.discord.com/hc/en-us/articles/228383668)
 - `movies`: a [TMDB API read access token](https://www.themoviedb.org/settings/api)
 - `node_lts`: Docker, for checking the Node version inside `node:lts-alpine`
