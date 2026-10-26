@@ -4,7 +4,7 @@ from math import ceil
 from PIL import Image
 import requests
 
-from ..loader import Config, State
+from ..loader import Config, is_notified, mark_notified
 
 
 def theme_color(img) -> tuple[int, int, int]:
@@ -37,9 +37,9 @@ def dominant_color_from_url(url: str) -> tuple[int, int, int]:
     return theme_color(rgb)
 
 
-def check_movies(state: State, config: Config):
+def check_movies(config: Config):
     for movie in config["movies"]:
-        if movie in state["movies"]:
+        if is_notified("movies", str(movie)):
             continue
 
         response = requests.get(
@@ -59,8 +59,6 @@ def check_movies(state: State, config: Config):
 
         if not provider_names:
             continue
-
-        state["movies"].append(movie)
 
         info = requests.get(
             f"https://api.themoviedb.org/3/movie/{movie}",
@@ -93,3 +91,4 @@ def check_movies(state: State, config: Config):
         }
 
         requests.post(config["webhook_url"], json=payload)
+        mark_notified("movies", str(movie))

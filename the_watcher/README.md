@@ -43,13 +43,13 @@ A movie's id is the number in its TMDB URL, e.g. `https://www.themoviedb.org/mov
 
 ## State
 
-What has already been notified about is stored in `~/.local/state/the-watcher/state.json`. Delete an entry (or the whole file) to get notified again.
+Every sent notification leaves an empty marker file in `~/.local/state/the-watcher/`, e.g. `movies/1003596` or `node_lts/v24.11.0`. Delete a marker to get notified about it again.
 
 ## File locations
 
 | File          | Default location                         | Overridden by                                      |
 |---------------|------------------------------------------|----------------------------------------------------|
 | `config.toml` | `~/.config/the-watcher/`                 | `$CONFIGURATION_DIRECTORY`, `$XDG_CONFIG_HOME`     |
-| `state.json`  | `~/.local/state/the-watcher/`            | `$STATE_DIRECTORY`, `$XDG_STATE_HOME`              |
+| markers       | `~/.local/state/the-watcher/`            | `$STATE_DIRECTORY`, `$XDG_STATE_HOME`              |
 
 `CONFIGURATION_DIRECTORY` and `STATE_DIRECTORY` are set by systemd when the unit uses `ConfigurationDirectory=` / `StateDirectory=`, and they point straight at the directory (no `the-watcher` suffix is added).
