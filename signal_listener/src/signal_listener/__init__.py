@@ -166,9 +166,12 @@ def main() -> None:
 
     validate_channels(config)
     detector = Detector(config)
-    while True:
-        try:
-            listen(config, detector)
-        except (requests.RequestException, json.JSONDecodeError) as e:
-            print(f"Disconnected ({e}), retrying in 5s", flush=True)
-            time.sleep(5)
+    try:
+        while True:
+            try:
+                listen(config, detector)
+            except (requests.RequestException, json.JSONDecodeError) as e:
+                print(f"Disconnected ({e}), retrying in 5s", flush=True)
+                time.sleep(5)
+    except KeyboardInterrupt:
+        print("Stopped", flush=True)
