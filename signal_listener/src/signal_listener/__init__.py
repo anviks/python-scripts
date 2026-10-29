@@ -16,23 +16,33 @@ UUID_RE = re.compile(
 )
 
 
+def rpc(base: str, method: str, params: dict | None = None):
+    r = requests.post(
+        f"{base}/rpc",
+        json={"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1},
+        timeout=5,
+    )
+    r.raise_for_status()
+    body = r.json()
+    if "error" in body:
+        raise ValueError(f"{method}: {body['error'].get('message', body['error'])}")
+    return body["result"]
+
+
 def validate_channels(config: Config):
     if not config["channels"]:
         return
     base = config["api_url"].rstrip("/")
     try:
         known: set[str] = set()
-        accounts = requests.get(f"{base}/accounts", timeout=5)
-        accounts.raise_for_status()
-        for number in accounts.json():
-            groups = requests.get(f"{base}/groups/{number}", timeout=5)
-            groups.raise_for_status()
-            for g in groups.json():
-                known.update(
-                    filter(None, (g.get("name"), g.get("id"), g.get("internal_id")))
-                )
-    except (requests.RequestException, ValueError, AttributeError) as e:
-        print(f"Couldn't validate channels against the API ({e}), skipping", flush=True)
+        for account in rpc(base, "listAccounts"):
+            groups = rpc(base, "listGroups", {"account": account["number"]})
+            for g in groups:
+                known.update(filter(None, (g.get("name"), g.get("id"))))
+    except (requests.RequestException, ValueError, KeyError, TypeError) as e:
+        print(
+            f"Couldn't validate channels against signal-cli ({e}), skipping", flush=True
+        )
         return
     for entry in config["channels"]:
         if entry in known or PHONE_RE.match(entry) or UUID_RE.match(entry):
