@@ -29,6 +29,10 @@ def rpc(base: str, method: str, params: dict | None = None):
     return body["result"]
 
 
+def full_name(d: dict) -> str:
+    return " ".join(filter(None, (d.get("givenName"), d.get("familyName"))))
+
+
 def validate_channels(config: Config):
     if not config["channels"]:
         return
@@ -39,6 +43,20 @@ def validate_channels(config: Config):
             groups = rpc(base, "listGroups", {"account": account["number"]})
             for g in groups:
                 known.update(filter(None, (g.get("name"), g.get("id"))))
+            for c in rpc(base, "listContacts", {"account": account["number"]}):
+                profile = c.get("profile") or {}
+                known.update(
+                    filter(
+                        None,
+                        (
+                            c.get("number"),
+                            c.get("uuid"),
+                            c.get("name"),
+                            full_name(c),
+                            full_name(profile),
+                        ),
+                    )
+                )
     except (requests.RequestException, ValueError, KeyError, TypeError) as e:
         print(
             f"Couldn't validate channels against signal-cli ({e}), skipping", flush=True
@@ -48,7 +66,7 @@ def validate_channels(config: Config):
         if entry in known or PHONE_RE.match(entry) or UUID_RE.match(entry):
             continue
         print(
-            f'Warning: channel "{entry}" matches no known group name/ID, '
+            f'Warning: channel "{entry}" matches no known group, contact, '
             "phone number or UUID (typo?)",
             flush=True,
         )
@@ -104,8 +122,11 @@ class Detector:
             ok = (
                 env.get("sourceNumber") in self.config["channels"]
                 or key in self.config["channels"]
+                or env.get("sourceName") in self.config["channels"]
             )
-            desc = f"sender {env.get('sourceNumber') or key}"
+            desc = (
+                f'sender "{env.get("sourceName")}" ({env.get("sourceNumber") or key})'
+            )
         if not ok and key not in self.ignored:
             self.ignored.add(key)
             print(f"Ignoring {desc}, not in channels", flush=True)

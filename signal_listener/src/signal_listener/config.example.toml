@@ -14,7 +14,8 @@ window = 7200
 # Minimum time (in seconds) between two hook runs, so they don't fire repeatedly
 cooldown = 14400
 
-# Only react to messages from these channels: group names or IDs, or phone numbers
-# / UUIDs of direct-message senders. Leave empty to listen to everything.
-# IDs are the robust choice: names aren't unique and stop matching if the group is renamed.
+# Only react to messages from these channels: group names or IDs, or contact names,
+# phone numbers or UUIDs of direct-message senders. Leave empty to listen to everything.
+# IDs, numbers and UUIDs are the robust choice: names aren't unique, can be renamed,
+# and a stranger can set their profile name to match a contact you've listed.
 channels = []
